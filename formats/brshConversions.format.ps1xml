@@ -1,0 +1,63 @@
+<Configuration>
+	<ViewDefinitions>
+		<View>
+			<Name>brshConversions.TimeZoneList</Name>
+			<ViewSelectedBy>
+				<TypeName>brshConversions.TimeZoneList</TypeName>
+			</ViewSelectedBy>
+			<TableControl>
+				<TableHeaders>
+					<TableColumnHeader>
+						<Label>Offset</Label>
+						<Width>11</Width>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>ID</Label>
+						<Width>35</Width>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>IsDST</Label>
+						<Width>5</Width>
+					</TableColumnHeader>
+					<TableColumnHeader>
+						<Label>CurrentTime</Label>
+					</TableColumnHeader>
+
+				</TableHeaders>
+				<TableRowEntries>
+					<TableRowEntry>
+						<TableColumnItems>
+							<TableColumnItem>
+								<ScriptBlock>
+									$_.Offset.ToString().PadLeft(9)
+								</ScriptBlock>
+							</TableColumnItem>
+							<TableColumnItem>
+								<PropertyName>ID</PropertyName>
+							</TableColumnItem>
+
+							<TableColumnItem>
+								<ScriptBlock>
+									$DST = 'No'
+									if ($_.IsDST) { $DST = 'Yes' }
+									"$DST"
+								</ScriptBlock>
+							</TableColumnItem>
+
+							<TableColumnItem>
+								<ScriptBlock>
+									$_.CurrentTime.ToString('MMM-dd  hh:mmt')
+								</ScriptBlock>
+							</TableColumnItem>
+
+
+
+						</TableColumnItems>
+					</TableRowEntry>
+				</TableRowEntries>
+			</TableControl>
+		</View>
+
+
+	</ViewDefinitions>
+</Configuration>
