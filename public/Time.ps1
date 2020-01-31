@@ -50,39 +50,37 @@ function Convert-TimeAcrossTimeZone {
 		[datetime] $Time = (get-date),
 		[Parameter(Mandatory = $false)]
 		[ArgumentCompleter( {
-			param($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
-			if ($WordToComplete) {
-				(Get-TimeZoneList -QuoteID | Sort-Object ID | Where-Object { $_.ID -match "^`"$WordToComplete" }).ID
-			} else {
-				(Get-TimeZoneList -QuoteID | Sort-Object ID).ID
-			}
-		})]
+				param($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
+				if ($WordToComplete) {
+					(Get-TimeZoneList -QuoteID | Sort-Object ID | Where-Object { $_.ID -match "^`"$WordToComplete" }).ID
+				} else {
+					(Get-TimeZoneList -QuoteID | Sort-Object ID).ID
+				}
+			})]
 		[ValidateScript( {
-			if ($null -eq (Get-TimeZoneList -QuoteID | where-object ID -eq "`"$_`"")) {
-				Throw "Could not find TimeZone specified, `"$_`"" #-ForegroundColor Red
-				#$false
-			} else {
-				$true
-			}
-		})]
+				if ($null -eq (Get-TimeZoneList -QuoteID | where-object ID -eq "`"$_`"")) {
+					Throw "Could not find TimeZone specified, `"$_`""
+				} else {
+					$true
+				}
+			})]
 		[string] $FromTimeZone = (Get-TimeZone).ID,
 		[Parameter(Mandatory = $false)]
 		[ArgumentCompleter( {
-			param($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
-			if ($WordToComplete) {
-				(Get-TimeZoneList -QuoteID | Sort-Object ID | Where-Object { $_.ID -match "^`"$WordToComplete" }).ID
-			} else {
-				(Get-TimeZoneList -QuoteID | Sort-Object ID).ID
-			}
-		})]
+				param($Command, $Parameter, $WordToComplete, $CommandAst, $FakeBoundParams)
+				if ($WordToComplete) {
+					(Get-TimeZoneList -QuoteID | Sort-Object ID | Where-Object { $_.ID -match "^`"$WordToComplete" }).ID
+				} else {
+					(Get-TimeZoneList -QuoteID | Sort-Object ID).ID
+				}
+			})]
 		[ValidateScript( {
-			if ($null -eq (Get-TimeZoneList -QuoteID | where-object ID -eq "`"$_`"")) {
-				Throw "Could not find TimeZone specified, `"$_`"" #-ForegroundColor Red
-				#$false
-			} else {
-				$true
-			}
-		})]
+				if ($null -eq (Get-TimeZoneList -QuoteID | where-object ID -eq "`"$_`"")) {
+					Throw "Could not find TimeZone specified, `"$_`""
+				} else {
+					$true
+				}
+			})]
 		[string] $ToTimeZone = 'UTC'
 	)
 
@@ -90,7 +88,6 @@ function Convert-TimeAcrossTimeZone {
 		Write-Host 'Um... both From and To TZs are the same...' -ForegroundColor White
 		Write-Host ''
 	} else {
-		[datetime] $time = $time.ToShortTimeString()
 		$toNewTimeZone = ConvertTime -time $time -fromTimeZone $fromTimeZone -toTimeZone $toTimeZone
 		$InfoStack = New-Object -TypeName PSCustomObject -Property ([ordered] @{
 				PSTypeName          = 'brshConversions.ConvertedTime'
