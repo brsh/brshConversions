@@ -6,6 +6,8 @@ Function Convert-SubnetMask {
 		Sometimes you need the CIDR, sometimes you need the Subnet Mask. Sometimes you need to know how many
 		ip addresses are contained in a specific CIDR/SubnetMask. Well, here ya go.
 
+		'Course, we all know that valid CIDR values are 8-30, with 32 being a specific host.
+
 		Based on work found on reddit:
 			https://www.reddit.com/r/PowerShell/comments/82mxds/inspired_by_latest_shortest_script_challenge_ipv4/
 			https://www.reddit.com/r/PowerShell/comments/81x324/shortest_script_challenge_cidr_to_subnet_mask/
@@ -21,6 +23,7 @@ NumberOfHosts    : 254
 BroadcastAddress : 10.0.0.255
 NetworkAddress   : 10.0.0.0
 Mask             : 255.255.255.0
+Class			 : C
 
     .EXAMPLE
 		Convert-SubnetMask -Mask '255.255.0.0'
@@ -30,6 +33,7 @@ NumberOfHosts    : 65534
 BroadcastAddress : 10.0.255.255
 NetworkAddress   : 10.0.0.0
 Mask             : 255.255.0.0
+Class            : B
 
 	.EXAMPLE
 		Convert-SubnetMask -Mask '255.255.0.0' -IPAddress '10.10.0.0'
@@ -39,12 +43,13 @@ NumberOfHosts    : 65534
 BroadcastAddress : 10.10.255.255
 NetworkAddress   : 10.10.0.0
 Mask             : 255.255.0.0
+Class            : B
 
 #>
 	[CmdletBinding(DefaultParameterSetName = "CIDR")]
 	param (
 		[Parameter(Mandatory = $true, ParameterSetName = 'CIDR', Position = 0)]
-		[ValidateScript( { ($_ -le 32) -and ($_ -ge 0) } )]
+		[ValidateScript( { (($_ -le 30) -and ($_ -ge 8)) -or ($_ -eq 32) } )]
 		[int] $CIDR,
 		[Parameter(Mandatory = $true, ParameterSetName = 'MASK', Position = 0)]
 		[ValidateScript( { $_ -match [ipaddress] $_ })]
@@ -71,7 +76,7 @@ Mask             : 255.255.0.0
 	} elseif ($PSCmdlet.ParameterSetName -eq "MASK") {
 		$MASKFinal = $Mask
 		try {
-			$CIDRFinal = (($Mask.Split('.')| ForEach-Object {[convert]::ToString($_, 2)}) -join '' -replace (0)).Length
+			$CIDRFinal = (($Mask.Split('.') | ForEach-Object { [convert]::ToString($_, 2) }) -join '' -replace (0)).Length
 		} catch {
 			$CIDRFinal = 'Invalid Mask Value'
 		}
@@ -85,7 +90,7 @@ Mask             : 255.255.0.0
 		$MASKFinal.Split('.') | ForEach-Object {
 			$i++
 			[string]$BinMask += [convert]::ToString([int32]$_, 2).PadLeft(8, '0')
-			if ($i -le 3) {[string]$BinMask += "."}
+			if ($i -le 3) { [string]$BinMask += "." }
 		}
 	} catch {
 		$BinMask = "Could not convert Mask"
@@ -131,17 +136,26 @@ Mask             : 255.255.0.0
 	$NetworkAddressInt = [System.BitConverter]::ToUInt32($NetworkAddressBytes, 0)
 	$BroadcastAddressInt = [System.BitConverter]::ToUInt32($BroadcastAddressBytes, 0)
 
-	#Calculate the number of hosts in our subnet, subtracting one to account for network address.
+	# Calculate the number of hosts in our subnet, subtracting one to account for network address.
 	[int] $NumberOfHosts = ($BroadcastAddressInt - $NetworkAddressInt) - 1
 
-	New-Object -TypeName psobject -Property @{
-		Mask             = $MASKFinal
-		CIDR             = $CIDRFinal
-		NetworkAddress   = $NetworkAddress
-		BroadcastAddress = $BroadcastAddress
-		NumberOfHosts    = $NumberOfHosts
-		BinaryMask       = $BinMask
+	# And class
+	[string] $Class = Switch ($CIDRFinal) {
+		{ $_ -lt 16 } { 'A'; break }
+		{ $_ -lt 24 } { 'B'; break }
+		{ $_ -lt 32 } { 'C'; break }
+		{ $_ -eq 32 } { 'Host'; break }
 	}
+
+	New-Object -TypeName psobject -Property ([ordered] @{
+			Class            = $Class
+			NumberOfHosts    = $NumberOfHosts
+			Mask             = $MASKFinal
+			CIDR             = $CIDRFinal
+			BinaryMask       = $BinMask
+			NetworkAddress   = $NetworkAddress
+			BroadcastAddress = $BroadcastAddress
+		})
 }
 
 Function Convert-AddressToName($addr) {
